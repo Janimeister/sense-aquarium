@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import random
 import uuid
 
+import config
 from config import clamp, clamp_int
 
 
@@ -276,32 +277,30 @@ def choose_species_for_environment(environment):
 
     temp = environment.corrected_temp
     humidity = environment.corrected_humidity
-    low_pressure = environment.pressure < 1004.0
-    high_pressure = environment.pressure > 1022.0
-    night = environment.hour >= 22 or environment.hour < 6
-    morning = 6 <= environment.hour < 9
+    low_pressure = environment.pressure < config.LOW_PRESSURE_HPA
+    high_pressure = environment.pressure > config.HIGH_PRESSURE_HPA
 
-    if temp < 18.0 and high_pressure and morning and random.random() < 0.25:
+    if temp < config.COLD_TEMP_C and high_pressure and environment.is_morning and random.random() < 0.25:
         return "Crystal Ray"
     if environment.event == "volcanic_vent":
         return random.choice(["Emberfish", "Emberfish", "Sunscale"])
     if environment.pressure_trend == "falling":
         return random.choice(["Stormtail", "Stormtail", "Abyssfish"])
-    if low_pressure and night:
+    if low_pressure and environment.is_night:
         return random.choice(["Lanternfish", "Abyssfish"])
     if low_pressure:
         return "Abyssfish"
     if high_pressure:
         return "Glassfin"
-    if temp > 28.0:
+    if temp > config.HOT_TEMP_C:
         return "Emberfish"
-    if temp < 18.0:
+    if temp < config.COLD_TEMP_C:
         return "Frostfin"
-    if humidity > 60.0 and morning:
+    if humidity > config.NORMAL_HUMIDITY and environment.is_morning:
         return "Bubblemouth"
-    if humidity > 60.0:
+    if humidity > config.NORMAL_HUMIDITY:
         return "Mossfin"
-    if temp > 23.0:
+    if temp > config.COMFORT_TEMP_C:
         return "Sunscale"
 
     return random.choice(["Glassfin", "Sunscale", "Mossfin", "Frostfin"])
@@ -311,24 +310,24 @@ def mutate_color(color, environment):
     """Nudge color toward the climate that caused the mutation."""
 
     red, green, blue = color
-    if environment.corrected_temp < 18.0:
+    if environment.corrected_temp < config.COLD_TEMP_C:
         blue += random.randint(20, 45)
         green += random.randint(5, 25)
         red -= random.randint(5, 18)
-    elif environment.corrected_temp > 28.0:
+    elif environment.corrected_temp > config.HOT_TEMP_C:
         red += random.randint(25, 55)
         green += random.randint(0, 22)
         blue -= random.randint(10, 30)
-    elif environment.corrected_temp > 23.0:
+    elif environment.corrected_temp > config.COMFORT_TEMP_C:
         red += random.randint(10, 35)
         green += random.randint(5, 25)
 
-    if environment.corrected_humidity > 60.0:
+    if environment.corrected_humidity > config.NORMAL_HUMIDITY:
         green += random.randint(15, 45)
-    if environment.pressure < 1004.0:
+    if environment.pressure < config.LOW_PRESSURE_HPA:
         blue += random.randint(10, 35)
         red += random.randint(0, 20)
-    if environment.pressure > 1022.0:
+    if environment.pressure > config.HIGH_PRESSURE_HPA:
         red += random.randint(10, 25)
         green += random.randint(10, 25)
         blue += random.randint(15, 35)

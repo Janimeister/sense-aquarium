@@ -146,9 +146,9 @@ class Aquarium:
                 new_bubbles.add((x, y - 1))
 
         self.bubbles = new_bubbles
-        bubble_species = any(fish.species == "Bubblemouth" for fish in self.alive_fish)
-        if bubble_species and len(self.bubbles) < config.MAX_BUBBLES and random.random() < 0.12:
-            source = random.choice(self.alive_fish)
+        bubblemouths = [fish for fish in self.alive_fish if fish.species == "Bubblemouth"]
+        if bubblemouths and len(self.bubbles) < config.MAX_BUBBLES and random.random() < 0.12:
+            source = random.choice(bubblemouths)
             self.bubbles.add((source.x, max(0, source.y - 1)))
 
     def _move_and_feed_fish(self, environment):
