@@ -20,16 +20,16 @@ from fish import (
 class Aquarium:
     def __init__(self, state=None):
         state = state or {}
-        self.fish = [Fish.from_dict(item) for item in state.get("fish", [])]
-        self.eggs = [Egg.from_dict(item) for item in state.get("eggs", [])]
+        self.fish = _load_fish(state.get("fish", []))
+        self.eggs = _load_eggs(state.get("eggs", []))
         self.algae = _load_points(state.get("algae", []))
-        self.pressure_history = list(state.get("pressure_history", []))
-        self.climate_history = list(state.get("climate_history", []))
-        self.generation_count = int(state.get("generation_count", 0))
-        self.last_midnight_event_date = state.get("last_midnight_event_date")
-        self.last_daily_update_date = state.get("last_daily_update_date")
-        self.tank_identity = state.get("tank_identity", "Crystal Pond")
-        self.dominant_species = state.get("dominant_species", "Glassfin")
+        self.pressure_history = _load_pressure_history(state.get("pressure_history", []))
+        self.climate_history = _load_climate_history(state.get("climate_history", []))
+        self.generation_count = _int_value(state.get("generation_count"), 0)
+        self.last_midnight_event_date = _optional_string(state.get("last_midnight_event_date"))
+        self.last_daily_update_date = _optional_string(state.get("last_daily_update_date"))
+        self.tank_identity = _string_value(state.get("tank_identity"), "Crystal Pond")
+        self.dominant_species = _string_value(state.get("dominant_species"), "Glassfin")
         self.food = _load_points(state.get("food", []))
         self.bubbles = _load_points(state.get("bubbles", []))
         self.lightning_frames = 0
@@ -398,6 +398,8 @@ class Aquarium:
 
 def _load_points(items):
     points = set()
+    if not isinstance(items, list):
+        return points
     for item in items:
         try:
             x, y = item
@@ -405,6 +407,79 @@ def _load_points(items):
         except (TypeError, ValueError):
             continue
     return points
+
+
+def _load_fish(items):
+    fish = []
+    for item in _dict_items(items):
+        try:
+            fish.append(Fish.from_dict(item))
+        except (TypeError, ValueError):
+            continue
+    return fish
+
+
+def _load_eggs(items):
+    eggs = []
+    for item in _dict_items(items):
+        try:
+            eggs.append(Egg.from_dict(item))
+        except (TypeError, ValueError):
+            continue
+    return eggs
+
+
+def _load_pressure_history(items):
+    history = []
+    for item in _dict_items(items):
+        try:
+            timestamp = str(item["time"])
+            datetime.fromisoformat(timestamp)
+            pressure = float(item["pressure"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        history.append({"time": timestamp, "pressure": pressure})
+    return history
+
+
+def _load_climate_history(items):
+    history = []
+    for item in _dict_items(items):
+        try:
+            record = {
+                "day": str(item.get("day", "")),
+                "corrected_temp": float(item["corrected_temp"]),
+                "corrected_humidity": float(item["corrected_humidity"]),
+                "pressure": float(item["pressure"]),
+                "pressure_trend": str(item.get("pressure_trend", "stable")),
+                "pressure_delta": float(item.get("pressure_delta", 0.0)),
+                "event": str(item.get("event", "balanced_current")),
+            }
+        except (KeyError, TypeError, ValueError):
+            continue
+        history.append(record)
+    return history[-30:]
+
+
+def _dict_items(items):
+    if not isinstance(items, list):
+        return []
+    return [item for item in items if isinstance(item, dict)]
+
+
+def _int_value(value, default):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _optional_string(value):
+    return value if isinstance(value, str) else None
+
+
+def _string_value(value, default):
+    return value if isinstance(value, str) and value else default
 
 
 def _sign(value):

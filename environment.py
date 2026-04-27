@@ -86,14 +86,17 @@ def calculate_pressure_trend(pressure_history, current_pressure, now):
     """Compare pressure with a reading from roughly 30 minutes ago."""
 
     target = now - timedelta(minutes=config.PRESSURE_TREND_MINUTES)
+    max_distance_seconds = timedelta(minutes=config.PRESSURE_TREND_TOLERANCE_MINUTES).total_seconds()
     best = None
     best_distance = None
 
     for item in pressure_history:
         try:
-            item_time = datetime.fromisoformat(item["time"])
+            item_time = _safe_time(item["time"])
             pressure = float(item["pressure"])
         except (KeyError, TypeError, ValueError):
+            continue
+        if item_time is None:
             continue
 
         distance = abs((item_time - target).total_seconds())
@@ -101,7 +104,7 @@ def calculate_pressure_trend(pressure_history, current_pressure, now):
             best = pressure
             best_distance = distance
 
-    if best is None:
+    if best is None or best_distance is None or best_distance > max_distance_seconds:
         return "stable", 0.0
 
     delta = current_pressure - best
@@ -116,6 +119,8 @@ def prune_pressure_history(pressure_history, now):
     cutoff = now - timedelta(hours=config.PRESSURE_HISTORY_HOURS)
     kept = []
     for item in pressure_history:
+        if not isinstance(item, dict):
+            continue
         item_time = _safe_time(item.get("time"))
         if item_time is not None and item_time >= cutoff:
             kept.append(item)
@@ -305,6 +310,9 @@ def build_environment(
 
 def _safe_time(value):
     try:
-        return datetime.fromisoformat(value)
+        parsed = datetime.fromisoformat(value)
     except (TypeError, ValueError):
         return None
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone().replace(tzinfo=None)
+    return parsed
