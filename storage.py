@@ -51,7 +51,14 @@ def save_state(state, path=None):
         os.fsync(handle.fileno())
         temp_name = handle.name
 
-    Path(temp_name).replace(path)
+    try:
+        Path(temp_name).replace(path)
+    except BaseException:
+        try:
+            os.unlink(temp_name)
+        except OSError:
+            pass
+        raise
     # Best-effort directory fsync so the rename is visible after power loss.
     # os.O_DIRECTORY is Linux-only; fall back to 0 on platforms that lack it.
     o_directory_flag = getattr(os, "O_DIRECTORY", 0)

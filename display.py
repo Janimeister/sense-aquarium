@@ -27,7 +27,6 @@ class MockSenseHat:
     def __init__(self):
         self.stick = MockStick()
         self._started = time.monotonic()
-        self._last_print = 0.0
         self._pixels = [[0, 0, 0] for _ in range(64)]
 
     def get_temperature(self):

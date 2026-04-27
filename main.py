@@ -97,6 +97,9 @@ def run_forever(aquarium, reader, display, args, environment):
                 try:
                     environment = reader.read(aquarium.pressure_history, wall_now)
                     aquarium.daily_update(environment, wall_now)
+                    if not args.no_log and config.LOG_SENSOR_CSV and monotonic_now - last_log >= config.SENSOR_INTERVAL_SECONDS:
+                        storage.append_sensor_log(environment, aquarium.tank_identity, len(aquarium.alive_fish))
+                        last_log = monotonic_now
                 except Exception as exc:  # noqa: BLE001 - keep running on transient sensor failure.
                     print(f"Sensor read failed ({exc}); skipping daily update this cycle")
                 last_sensor = monotonic_now
@@ -111,10 +114,6 @@ def run_forever(aquarium, reader, display, args, environment):
             if monotonic_now - last_evolution >= config.EVOLUTION_INTERVAL_SECONDS:
                 aquarium.evolution_tick(environment, wall_now)
                 last_evolution = monotonic_now
-
-            if not args.no_log and config.LOG_SENSOR_CSV and monotonic_now - last_log >= config.SENSOR_INTERVAL_SECONDS:
-                storage.append_sensor_log(environment, aquarium.tank_identity, len(aquarium.alive_fish))
-                last_log = monotonic_now
 
             if monotonic_now - last_save >= config.SAVE_INTERVAL_SECONDS:
                 storage.save_state(aquarium.to_state(), args.state)
