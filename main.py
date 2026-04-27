@@ -52,8 +52,10 @@ def main():
         print(f"Initial sensor read failed ({exc}); using safe defaults")
         from environment import build_environment
         environment = build_environment(
-            raw_temp=22.0, corrected_temp=22.0 - config.TEMP_OFFSET_C,
-            raw_humidity=50.0, corrected_humidity=50.0,
+            raw_temp=config.COMFORT_TEMP_C + config.TEMP_OFFSET_C,
+            corrected_temp=config.COMFORT_TEMP_C,
+            raw_humidity=50.0 + config.HUMIDITY_OFFSET,
+            corrected_humidity=50.0,
             pressure=1013.0, pressure_trend="stable", pressure_delta=0.0,
             now=now,
         )

@@ -53,8 +53,10 @@ def save_state(state, path=None):
 
     Path(temp_name).replace(path)
     # Best-effort directory fsync so the rename is visible after power loss.
+    # os.O_DIRECTORY is Linux-only; fall back to 0 on platforms that lack it.
+    _O_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
     try:
-        dir_fd = os.open(str(path.parent), os.O_RDONLY | os.O_DIRECTORY)
+        dir_fd = os.open(str(path.parent), os.O_RDONLY | _O_DIRECTORY)
         try:
             os.fsync(dir_fd)
         finally:
@@ -66,9 +68,9 @@ def save_state(state, path=None):
 def append_sensor_log(environment, tank_identity, fish_count, path=None):
     path = Path(path or config.SENSOR_LOG_FILE)
     path.parent.mkdir(parents=True, exist_ok=True)
-    should_write_header = not path.exists() or path.stat().st_size == 0
 
     with path.open("a", encoding="utf-8", newline="") as handle:
+        should_write_header = handle.tell() == 0
         writer = csv.writer(handle)
         if should_write_header:
             writer.writerow(
