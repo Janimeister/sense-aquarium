@@ -53,7 +53,7 @@ def save_state(state, path=None):
 
     try:
         Path(temp_name).replace(path)
-    except BaseException:
+    except Exception:
         try:
             os.unlink(temp_name)
         except OSError:
