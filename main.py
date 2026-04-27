@@ -112,9 +112,12 @@ def run_forever(aquarium, reader, display, args, environment):
     except KeyboardInterrupt:
         print("Stopping aquarium")
     finally:
-        storage.save_state(aquarium.to_state(), args.state)
+        try:
+            storage.save_state(aquarium.to_state(), args.state)
+            print(f"Saved aquarium state to {args.state}")
+        except Exception as exc:  # noqa: BLE001 - best-effort save during shutdown.
+            print(f"Could not save state ({exc})")
         display.clear()
-        print(f"Saved aquarium state to {args.state}")
 
 
 if __name__ == "__main__":

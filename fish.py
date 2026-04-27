@@ -163,7 +163,7 @@ class Fish:
             id=str(data.get("id") or uuid.uuid4()),
             x=int(clamp(data.get("x", random.randrange(8)), 0, 7)),
             y=int(clamp(data.get("y", random.randrange(8)), 0, 7)),
-            color=[clamp_int(channel) for channel in data.get("color", [80, 180, 255])[:3]],
+            color=_parse_color(data.get("color", [80, 180, 255])),
             species=data.get("species", "Glassfin"),
             age_days=int(data.get("age_days", 0)),
             energy=float(clamp(data.get("energy", 75.0), 0.0, 120.0)),
@@ -217,6 +217,16 @@ class Egg:
             storm_born=bool(data.get("storm_born", False)),
             special=bool(data.get("special", False)),
         )
+
+
+_DEFAULT_COLOR = [80, 180, 255]
+
+
+def _parse_color(raw):
+    """Normalize a color value to exactly 3 clamped ints."""
+    if not isinstance(raw, list) or len(raw) < 3:
+        return list(_DEFAULT_COLOR)
+    return [clamp_int(channel) for channel in raw[:3]]
 
 
 def make_fish(species, x=None, y=None, age_days=0):

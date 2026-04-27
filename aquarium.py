@@ -155,6 +155,7 @@ class Aquarium:
             self._drain_or_restore_energy(fish, environment)
             if fish.energy <= 0 and random.random() < 0.025:
                 fish.alive = False
+                occupied.discard((fish.x, fish.y))
                 continue
 
             if not self._should_move(fish, environment):
