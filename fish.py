@@ -353,10 +353,10 @@ def maybe_mutate_fish(fish, environment):
     if mutation_kind == "pattern":
         fish.pattern = random.choice(PATTERNS)
     elif mutation_kind == "speed":
-        delta = 0.12 if environment.corrected_temp >= 23.0 else -0.08
+        delta = 0.12 if environment.corrected_temp >= config.COMFORT_TEMP_C else -0.08
         fish.speed = clamp(fish.speed + delta + random.uniform(-0.05, 0.08), 0.25, 2.25)
     elif mutation_kind == "depth":
-        if environment.pressure < 1004.0 or environment.corrected_temp < 18.0:
+        if environment.pressure < config.LOW_PRESSURE_HPA or environment.corrected_temp < config.COLD_TEMP_C:
             fish.preferred_depth = int(clamp(fish.preferred_depth + 1, 0, 7))
         else:
             fish.preferred_depth = int(clamp(fish.preferred_depth + random.choice([-1, 1]), 0, 7))

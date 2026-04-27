@@ -46,7 +46,17 @@ def main():
 
     aquarium = Aquarium(state)
     now = datetime.now()
-    environment = reader.read(aquarium.pressure_history, now)
+    try:
+        environment = reader.read(aquarium.pressure_history, now)
+    except Exception as exc:  # noqa: BLE001 - keep the aquarium alive on transient sensor failure at startup.
+        print(f"Initial sensor read failed ({exc}); using safe defaults")
+        from environment import build_environment
+        environment = build_environment(
+            raw_temp=22.0, corrected_temp=22.0 - config.TEMP_OFFSET_C,
+            raw_humidity=50.0, corrected_humidity=50.0,
+            pressure=1013.0, pressure_trend="stable", pressure_delta=0.0,
+            now=now,
+        )
     aquarium.daily_update(environment, now)
 
     if args.once:
@@ -67,12 +77,13 @@ def run_once(aquarium, environment, display, args):
 
 
 def run_forever(aquarium, reader, display, args, environment):
-    last_sensor = 0.0
-    last_frame = 0.0
-    last_evolution = 0.0
-    last_save = 0.0
-    last_console = 0.0
-    last_log = 0.0
+    start = time.monotonic()
+    last_sensor = start
+    last_frame = start
+    last_evolution = start
+    last_save = start
+    last_console = start
+    last_log = start
 
     print("8x8 Generative Aquarium is running. Hold the joystick middle button to save and exit.")
     try:
