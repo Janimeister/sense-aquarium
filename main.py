@@ -94,9 +94,9 @@ def run_forever(aquarium, reader, display, args, environment):
             if monotonic_now - last_sensor >= config.SENSOR_INTERVAL_SECONDS:
                 try:
                     environment = reader.read(aquarium.pressure_history, wall_now)
+                    aquarium.daily_update(environment, wall_now)
                 except Exception as exc:  # noqa: BLE001 - keep running on transient sensor failure.
-                    print(f"Sensor read failed ({exc}); reusing previous environment")
-                aquarium.daily_update(environment, wall_now)
+                    print(f"Sensor read failed ({exc}); skipping daily update this cycle")
                 last_sensor = monotonic_now
 
             display.handle_joystick(aquarium)

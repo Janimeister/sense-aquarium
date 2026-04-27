@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from pathlib import Path
 import tempfile
 
@@ -46,9 +47,20 @@ def save_state(state, path=None):
     ) as handle:
         json.dump(state, handle, indent=2, sort_keys=True)
         handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
         temp_name = handle.name
 
     Path(temp_name).replace(path)
+    # Best-effort directory fsync so the rename is visible after power loss.
+    try:
+        dir_fd = os.open(str(path.parent), os.O_RDONLY)
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+    except OSError:
+        pass
 
 
 def append_sensor_log(environment, tank_identity, fish_count, path=None):
