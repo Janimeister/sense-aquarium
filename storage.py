@@ -54,7 +54,7 @@ def save_state(state, path=None):
     Path(temp_name).replace(path)
     # Best-effort directory fsync so the rename is visible after power loss.
     try:
-        dir_fd = os.open(str(path.parent), os.O_RDONLY)
+        dir_fd = os.open(str(path.parent), os.O_RDONLY | os.O_DIRECTORY)
         try:
             os.fsync(dir_fd)
         finally:
