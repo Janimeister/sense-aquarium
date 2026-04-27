@@ -43,7 +43,9 @@ class Aquarium:
 
     def seed_starting_fish(self):
         starter_species = ["Glassfin", "Sunscale", "Mossfin", "Frostfin"]
-        self.fish = [make_fish(species) for species in starter_species[: config.MIN_STARTING_FISH]]
+        count = max(config.MIN_STARTING_FISH, 1)
+        species_list = [starter_species[i % len(starter_species)] for i in range(count)]
+        self.fish = [make_fish(species) for species in species_list]
         self.generation_count = max(self.generation_count, 1)
 
     def to_state(self):
@@ -326,9 +328,10 @@ class Aquarium:
             self.lightning_frames = random.choice([1, 2])
 
     def _maybe_midnight_event(self, environment, now):
-        if now.hour != 0 or self.last_midnight_event_date == environment.day:
+        today = now.date().isoformat()
+        if now.hour != 0 or self.last_midnight_event_date == today:
             return
-        self.last_midnight_event_date = environment.day
+        self.last_midnight_event_date = today
         for fish in self.alive_fish:
             if random.random() < environment.mutation_chance * 4.0:
                 maybe_mutate_fish(fish, environment)

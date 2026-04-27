@@ -140,10 +140,10 @@ def build_environment(
     """Map room climate into aquarium behavior knobs and a named event."""
 
     hour = now.hour
-    night = hour >= 22 or hour < 6
-    morning = 6 <= hour < 9
-    day = 9 <= hour < 18
-    evening = 18 <= hour < 22
+    is_nighttime = hour >= 22 or hour < 6
+    is_morning = 6 <= hour < 9
+    is_daytime = 9 <= hour < 18
+    is_evening = 18 <= hour < 22
 
     speed_modifier = 1.0
     mutation_chance = 0.010
@@ -220,15 +220,15 @@ def build_environment(
         food_spawn_chance += 0.025
         event = "clearing_water"
 
-    if morning:
+    if is_morning:
         food_spawn_chance += 0.10
         breeding_chance += 0.004
-    elif day:
+    elif is_daytime:
         speed_modifier *= 1.06
-    elif evening:
+    elif is_evening:
         breeding_chance += 0.020
         background_color = [4, 4, 14]
-    elif night:
+    elif is_nighttime:
         speed_modifier *= 0.72
         glow_bonus += 0.25
         food_spawn_chance *= 0.55
@@ -260,13 +260,13 @@ def build_environment(
         mutation_chance += 0.018
         glow_bonus += 0.20
         background_color = [4, 0, 16]
-    if pressure_trend == "falling" and night:
+    if pressure_trend == "falling" and is_nighttime:
         event = "abyss_migration"
         current_strength = current_strength or -1
         glow_bonus += 0.28
         mutation_chance += 0.012
         background_color = [0, 0, 10]
-    if pressure_trend == "rising" and morning:
+    if pressure_trend == "rising" and is_morning:
         event = "clear_sunrise"
         breeding_chance += 0.010
         food_spawn_chance += 0.08
@@ -276,11 +276,11 @@ def build_environment(
         mutation_chance += 0.022
         glow_bonus += 0.10
         background_color = [12, 1, 4]
-    if (humid or very_humid) and evening:
+    if (humid or very_humid) and is_evening:
         event = "breeding_bloom"
         breeding_chance += 0.035
         algae_growth += 0.030
-    if high_pressure and day:
+    if high_pressure and is_daytime:
         event = "crystal_clarity"
         mutation_chance *= 0.70
         speed_modifier *= 0.85

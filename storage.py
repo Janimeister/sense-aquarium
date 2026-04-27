@@ -23,6 +23,12 @@ def load_state(path=None):
 
     if not isinstance(data, dict):
         raise ValueError(f"State file {path} does not contain a JSON object")
+
+    version = data.get("state_version")
+    if version is not None and version > STATE_VERSION:
+        raise ValueError(
+            f"State file {path} has version {version}, but this release only supports up to {STATE_VERSION}"
+        )
     return data
 
 
