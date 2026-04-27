@@ -222,7 +222,9 @@ class Egg:
 def make_fish(species, x=None, y=None, age_days=0):
     """Create a fish from a species profile with small natural variation."""
 
-    profile = SPECIES_PROFILES.get(species, SPECIES_PROFILES["Glassfin"])
+    if species not in SPECIES_PROFILES:
+        species = "Glassfin"
+    profile = SPECIES_PROFILES[species]
     base_color = random.choice(profile["colors"])
     color = [clamp_int(channel + random.randint(-18, 18)) for channel in base_color]
     speed = clamp(profile["speed"] + random.uniform(-0.15, 0.15), 0.25, 2.2)

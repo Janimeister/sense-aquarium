@@ -45,7 +45,7 @@ def save_state(state, path=None):
 def append_sensor_log(environment, tank_identity, fish_count, path=None):
     path = Path(path or config.SENSOR_LOG_FILE)
     path.parent.mkdir(parents=True, exist_ok=True)
-    should_write_header = not path.exists()
+    should_write_header = not path.exists() or path.stat().st_size == 0
 
     with path.open("a", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)

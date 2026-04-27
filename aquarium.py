@@ -51,6 +51,8 @@ class Aquarium:
             "fish": [fish.to_dict() for fish in self.fish if fish.alive],
             "eggs": [egg.to_dict() for egg in self.eggs],
             "algae": [[x, y] for x, y in sorted(self.algae)],
+            "food": [[x, y] for x, y in sorted(self.food)],
+            "bubbles": [[x, y] for x, y in sorted(self.bubbles)],
             "pressure_history": self.pressure_history,
             "climate_history": self.climate_history[-30:],
             "generation_count": self.generation_count,
@@ -91,8 +93,7 @@ class Aquarium:
         for fish in self.alive_fish:
             fish.age_days += 1
             fish.energy = config.clamp(fish.energy + 3.0, 0.0, 120.0)
-            if environment.is_night or now.hour < 9:
-                fish.nights_survived += 1
+            fish.nights_survived += 1
 
         for egg in self.eggs:
             egg.age_days += 1

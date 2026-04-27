@@ -45,8 +45,9 @@ def main():
         state = None
 
     aquarium = Aquarium(state)
-    environment = reader.read(aquarium.pressure_history, datetime.now())
-    aquarium.daily_update(environment, datetime.now())
+    now = datetime.now()
+    environment = reader.read(aquarium.pressure_history, now)
+    aquarium.daily_update(environment, now)
 
     if args.once:
         run_once(aquarium, environment, display, args)
