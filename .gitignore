@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.venv/
+aquarium_state.json
+sensor_log.csv
+.smoke_state.json
