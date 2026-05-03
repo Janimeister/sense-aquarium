@@ -80,6 +80,8 @@ class Aquarium:
         self._hatch_ready_eggs(environment, now, accelerated=False)
         self._gentle_retirement(environment)
         self._update_dominant_species()
+        if not self.alive_fish and not self.eggs:
+            self.seed_starting_fish()
 
     def daily_update(self, environment, now=None):
         now = now or datetime.now()
@@ -131,7 +133,7 @@ class Aquarium:
             edge_positions = []
             for x in range(8):
                 edge_positions.append((x, 7))
-            for y in range(4, 8):
+            for y in range(4, 7):
                 edge_positions.append((0, y))
                 edge_positions.append((7, y))
             self.algae.add(random.choice(edge_positions))
@@ -308,7 +310,7 @@ class Aquarium:
             self.fish.append(make_fish(species, x=egg.x, y=egg.y))
             self.generation_count += 1
 
-        self.eggs = survivors[: config.MAX_EGGS]
+        self.eggs = survivors[-config.MAX_EGGS:]
 
     def _gentle_retirement(self, environment):
         for fish in self.alive_fish:

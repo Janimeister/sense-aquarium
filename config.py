@@ -11,8 +11,8 @@ SENSOR_LOG_FILE = BASE_DIR / "sensor_log.csv"
 # Sense HAT temperature is often warmed by the Raspberry Pi below it.
 # These values are intentionally simple module constants so they can be edited
 # without touching the simulation code.
-TEMP_OFFSET_C = 7.0
-HUMIDITY_OFFSET = 0.0
+TEMP_OFFSET_C = 9.6
+HUMIDITY_OFFSET = 8.0
 
 # Runtime cadence.
 FRAME_INTERVAL_SECONDS = 0.35

@@ -80,6 +80,7 @@ class DisplayManager:
         self._last_message_at = 0.0
         self.exit_requested = False
         self.last_interaction_at = time.monotonic()
+        self._middle_pressed_at = None
 
     @property
     def mode(self):
@@ -98,13 +99,17 @@ class DisplayManager:
         for event in events:
             direction = getattr(event, "direction", "")
             action = getattr(event, "action", "")
+
+            if direction == "middle" and action == "released":
+                self._middle_pressed_at = None
+                continue
+
             if action not in {"pressed", "held"}:
                 continue
             self.last_interaction_at = time.monotonic()
 
-            if direction == "middle" and action == "held":
-                self.exit_requested = True
-            elif direction == "middle":
+            if direction == "middle" and action == "pressed":
+                self._middle_pressed_at = time.monotonic()
                 self.mode_index = (self.mode_index + 1) % len(DISPLAY_MODES)
                 self._last_message_at = 0.0
             elif direction == "up":
@@ -115,6 +120,9 @@ class DisplayManager:
                 self.view_index = (self.view_index - 1) % len(VIEWS)
             elif direction == "right":
                 self.view_index = (self.view_index + 1) % len(VIEWS)
+
+        if self._middle_pressed_at is not None and time.monotonic() - self._middle_pressed_at >= 2.0:
+            self.exit_requested = True
 
         if self.exit_requested:
             aquarium.lightning_frames = 0
@@ -223,9 +231,9 @@ def render_status_icon(environment, mode):
         height = int(config.clamp((environment.corrected_temp - 10.0) / 25.0 * 8.0, 1, 8))
         color = [180, 50, 30] if environment.corrected_temp >= config.HOT_TEMP_C else [60, 160, 255]
         for y in range(7, 7 - height, -1):
-            _set(pixels, 1, y, color)
-        humidity_width = int(config.clamp(environment.corrected_humidity / 100.0 * 8.0, 1, 8))
-        for x in range(humidity_width):
+            _set(pixels, 0, y, color)
+        humidity_width = int(config.clamp(environment.corrected_humidity / 100.0 * 6.0, 1, 6))
+        for x in range(2, 2 + humidity_width):
             _set(pixels, x, 6, [30, 120, 180])
     elif mode == "ecosystem":
         for x in range(8):
