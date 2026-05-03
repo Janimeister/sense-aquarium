@@ -74,6 +74,38 @@ Aquarium views:
 - Thermal: temperature and energy emphasized
 - Genetic: mutation level, age, and energy emphasized
 
+### 8x8 LED legend
+
+In the main Aquarium view, each pixel on the 8x8 grid has a meaning:
+
+- Fish: one bright pixel per fish, using species colors in Natural view
+- Large fish: a second dim tail pixel behind the fish
+- Stormtail in falling pressure: blue-violet trail pixel behind the fish
+- Eggs: amber/brown pixels
+- Food: bright green pixels
+- Algae: darker green pixels
+- Bubbles: pale blue/cyan pixels
+- Lightning or storm flash: white or purple streak pixels
+
+The water/background color also changes to show tank conditions:
+
+- Deep blue: normal water or night
+- Blue-cyan: cold or high-pressure / crystal conditions
+- Teal-green: plankton bloom or lush water
+- Purple-indigo: low-pressure, abyss, or storm conditions
+- Red-orange: heat stress or volcanic vent conditions
+
+Extra event effects can appear on top of the background:
+
+- Green sparkles: `plankton_bloom` or `breeding_bloom`
+- Red-orange glow on the bottom row: `volcanic_vent`
+
+In the non-aquarium display modes, the LEDs act as status icons before text scrolls:
+
+- Sensor mode: left bar shows temperature, lower bar shows humidity, with blue for cooler water and red for hotter water
+- Ecosystem mode: green bottom row represents the tank floor and the blue block highlights ecosystem status
+- Debug mode: purple/teal X pattern indicates the raw sensor debug screen
+
 After a long period without joystick input, brightness drops to a screensaver
 level automatically.
 
