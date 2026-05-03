@@ -246,18 +246,13 @@ def build_environment(
     if hot and dry:
         event = "evaporation_stress"
         speed_modifier *= 0.72
-        mutation_chance += 0.018
-        food_spawn_chance *= 0.45
         background_color = [12, 1, 5]
     if cold and high_pressure:
         event = "crystal_freeze"
-        speed_modifier *= 0.70
-        mutation_chance *= 0.75
         background_color = [4, 12, 22]
     if low_pressure and (humid or very_humid):
         event = "deep_storm"
         current_strength = current_strength or 1
-        mutation_chance += 0.018
         glow_bonus += 0.20
         background_color = [4, 0, 16]
     if pressure_trend == "falling" and is_nighttime:
@@ -282,8 +277,6 @@ def build_environment(
         algae_growth += 0.030
     if high_pressure and is_daytime:
         event = "crystal_clarity"
-        mutation_chance *= 0.70
-        speed_modifier *= 0.85
         background_color = [2, 12, 20]
 
     return Environment(
