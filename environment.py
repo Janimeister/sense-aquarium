@@ -275,7 +275,7 @@ def build_environment(
         event = "breeding_bloom"
         breeding_chance += 0.035
         algae_growth += 0.030
-    if high_pressure and is_daytime:
+    if high_pressure and is_daytime and not cold:
         event = "crystal_clarity"
         background_color = [2, 12, 20]
 
