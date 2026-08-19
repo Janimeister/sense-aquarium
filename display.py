@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 import math
 import random
+import threading
 import time
 
 import config
@@ -81,6 +82,7 @@ class DisplayManager:
         self.exit_requested = False
         self.last_interaction_at = time.monotonic()
         self._middle_pressed_at = None
+        self._message_thread = None
 
     @property
     def mode(self):
@@ -101,7 +103,16 @@ class DisplayManager:
             action = getattr(event, "action", "")
 
             if direction == "middle" and action == "released":
+                # A short press cycles display mode on release, so holding to
+                # exit does not also flip the mode.
+                if (
+                    self._middle_pressed_at is not None
+                    and time.monotonic() - self._middle_pressed_at < 2.0
+                ):
+                    self.mode_index = (self.mode_index + 1) % len(DISPLAY_MODES)
+                    self._last_message_at = 0.0
                 self._middle_pressed_at = None
+                self.last_interaction_at = time.monotonic()
                 continue
 
             if action not in {"pressed", "held"}:
@@ -110,8 +121,6 @@ class DisplayManager:
 
             if direction == "middle" and action == "pressed":
                 self._middle_pressed_at = time.monotonic()
-                self.mode_index = (self.mode_index + 1) % len(DISPLAY_MODES)
-                self._last_message_at = 0.0
             elif direction == "up":
                 self.brightness_index = min(self.brightness_index + 1, len(config.BRIGHTNESS_STEPS) - 1)
             elif direction == "down":
@@ -130,6 +139,8 @@ class DisplayManager:
     def render(self, aquarium, environment, now=None):
         now = now or datetime.now()
         if self.mode == "aquarium":
+            if self._message_scrolling():
+                return
             pixels = render_aquarium(aquarium, environment, self.view)
             self.sense.set_pixels(self._scale_pixels(pixels))
             return
@@ -137,9 +148,17 @@ class DisplayManager:
         self._render_message_mode(aquarium, environment, now)
 
     def clear(self):
+        thread = self._message_thread
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=5.0)
         self.sense.clear([0, 0, 0])
 
+    def _message_scrolling(self):
+        return self._message_thread is not None and self._message_thread.is_alive()
+
     def _render_message_mode(self, aquarium, environment, now):
+        if self._message_scrolling():
+            return
         current_time = time.monotonic()
         if current_time - self._last_message_at < 7.0:
             self.sense.set_pixels(self._scale_pixels(render_status_icon(environment, self.mode)))
@@ -163,12 +182,26 @@ class DisplayManager:
                 f"rawH {environment.raw_humidity:.0f} off {config.HUMIDITY_OFFSET:.1f}"
             )
 
-        self.sense.show_message(
-            message,
-            scroll_speed=0.055,
-            text_colour=self._scale_color([120, 220, 255]),
-            back_colour=[0, 0, 0],
+        # Scroll in a background thread so sensor reads, saves, and joystick
+        # handling keep running while text moves across the matrix. Other LED
+        # writes are suppressed until the scroll finishes.
+        self._message_thread = threading.Thread(
+            target=self._show_message_safe,
+            args=(message,),
+            daemon=True,
         )
+        self._message_thread.start()
+
+    def _show_message_safe(self, message):
+        try:
+            self.sense.show_message(
+                message,
+                scroll_speed=0.055,
+                text_colour=self._scale_color([120, 220, 255]),
+                back_colour=[0, 0, 0],
+            )
+        except Exception as exc:  # noqa: BLE001 - keep the loop alive on display errors.
+            print(f"Message scroll failed ({exc})")
 
     def _brightness_scale(self):
         if time.monotonic() - self.last_interaction_at > config.SCREENSAVER_AFTER_SECONDS:

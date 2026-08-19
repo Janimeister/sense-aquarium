@@ -14,6 +14,10 @@ PERSONALITIES = ["shy", "curious", "chaotic", "sleepy", "social"]
 PATTERNS = ["plain", "striped", "glowing", "spotted", "zigzag"]
 SIZES = ["small", "medium", "large"]
 
+# Single allowed speed range for creation, persistence, and mutation.
+SPEED_MIN = 0.25
+SPEED_MAX = 2.25
+
 
 # Species profiles keep the tiny ecosystem readable: environmental triggers
 # select a species, while mutation nudges its traits over time.
@@ -168,7 +172,7 @@ class Fish:
             species=data.get("species", "Glassfin"),
             age_days=int(data.get("age_days", 0)),
             energy=float(clamp(data.get("energy", 75.0), 0.0, 120.0)),
-            speed=float(clamp(data.get("speed", 1.0), 0.2, 2.5)),
+            speed=float(clamp(data.get("speed", 1.0), SPEED_MIN, SPEED_MAX)),
             size=data.get("size", "small") if data.get("size") in SIZES else "small",
             personality=data.get("personality", "curious")
             if data.get("personality") in PERSONALITIES
@@ -238,7 +242,7 @@ def make_fish(species, x=None, y=None, age_days=0):
     profile = SPECIES_PROFILES[species]
     base_color = random.choice(profile["colors"])
     color = [clamp_int(channel + random.randint(-18, 18)) for channel in base_color]
-    speed = clamp(profile["speed"] + random.uniform(-0.15, 0.15), 0.25, 2.2)
+    speed = clamp(profile["speed"] + random.uniform(-0.15, 0.15), SPEED_MIN, SPEED_MAX)
 
     return Fish(
         id=str(uuid.uuid4()),
@@ -354,7 +358,7 @@ def maybe_mutate_fish(fish, environment):
         fish.pattern = random.choice(PATTERNS)
     elif mutation_kind == "speed":
         delta = 0.12 if environment.corrected_temp >= config.COMFORT_TEMP_C else -0.08
-        fish.speed = clamp(fish.speed + delta + random.uniform(-0.05, 0.08), 0.25, 2.25)
+        fish.speed = clamp(fish.speed + delta + random.uniform(-0.05, 0.08), SPEED_MIN, SPEED_MAX)
     elif mutation_kind == "depth":
         if environment.pressure < config.LOW_PRESSURE_HPA or environment.corrected_temp < config.COLD_TEMP_C:
             fish.preferred_depth = int(clamp(fish.preferred_depth + 1, 0, 7))
