@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 aquarium_state.json
 sensor_log.csv
+sensor_log.csv.1
 .smoke_state.json

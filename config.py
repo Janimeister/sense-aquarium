@@ -41,7 +41,9 @@ HIGH_PRESSURE_HPA = 1022.0
 PRESSURE_TREND_MINUTES = 30
 PRESSURE_TREND_TOLERANCE_MINUTES = 5
 PRESSURE_TREND_THRESHOLD_HPA = 1.0
-PRESSURE_HISTORY_HOURS = 48
+# Trend only needs PRESSURE_TREND_MINUTES + tolerance of history; keeping the
+# window short keeps the state file small and reduces SD card wear.
+PRESSURE_HISTORY_HOURS = 1
 
 # LED brightness scaling. Values are deliberately modest to reduce heat and
 # eye strain on a Sense HAT mounted directly above the Raspberry Pi.
@@ -50,8 +52,10 @@ DEFAULT_BRIGHTNESS_INDEX = 2
 SCREENSAVER_AFTER_SECONDS = 600.0
 SCREENSAVER_BRIGHTNESS_INDEX = 0
 
-# Optional logging.
+# Optional logging. When the CSV exceeds the size cap it is rotated to
+# sensor_log.csv.1 (replacing any previous rotation) and a fresh file starts.
 LOG_SENSOR_CSV = True
+SENSOR_LOG_MAX_BYTES = 5 * 1024 * 1024
 
 
 def clamp(value, lower, upper):

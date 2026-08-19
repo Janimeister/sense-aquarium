@@ -115,8 +115,8 @@ The Sense HAT temperature and humidity readings can be distorted by heat from th
 Raspberry Pi. Defaults live in `config.py`:
 
 ```python
-TEMP_OFFSET_C = 7.0
-HUMIDITY_OFFSET = 0.0
+TEMP_OFFSET_C = 9.6
+HUMIDITY_OFFSET = 8.0
 ```
 
 Runtime correction:
@@ -223,7 +223,8 @@ Combined events override simpler events when conditions line up:
 - climate history
 - dominant species and tank identity
 
-Pressure history is kept for about 48 hours and used to calculate trend. Climate
+Pressure history is kept for about an hour, which is enough to calculate the
+30-minute trend while keeping the state file small. Climate
 history influences tank identities:
 
 - Tropical Reef
@@ -236,7 +237,9 @@ history influences tank identities:
 ## Optional Sensor CSV Log
 
 By default, readings are appended to `sensor_log.csv` with corrected values,
-pressure trend, current event, fish count, and tank identity.
+pressure trend, current event, fish count, and tank identity. When the file
+exceeds the size cap in `config.py` (`SENSOR_LOG_MAX_BYTES`, 5 MB by default),
+it is rotated to `sensor_log.csv.1` and a fresh file is started.
 
 Disable CSV logging:
 

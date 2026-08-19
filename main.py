@@ -85,7 +85,6 @@ def run_forever(aquarium, reader, display, args, environment):
     last_evolution = start
     last_save = start
     last_console = start
-    last_log = start
 
     print("8x8 Generative Aquarium is running. Hold the joystick middle button to save and exit.")
     try:
@@ -97,9 +96,8 @@ def run_forever(aquarium, reader, display, args, environment):
                 try:
                     environment = reader.read(aquarium.pressure_history, wall_now)
                     aquarium.daily_update(environment, wall_now)
-                    if not args.no_log and config.LOG_SENSOR_CSV and monotonic_now - last_log >= config.SENSOR_INTERVAL_SECONDS:
+                    if not args.no_log and config.LOG_SENSOR_CSV:
                         storage.append_sensor_log(environment, aquarium.tank_identity, len(aquarium.alive_fish))
-                        last_log = monotonic_now
                 except Exception as exc:  # noqa: BLE001 - keep running on transient sensor failure.
                     print(f"Sensor read failed ({exc}); skipping daily update this cycle")
                 last_sensor = monotonic_now

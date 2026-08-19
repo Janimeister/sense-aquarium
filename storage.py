@@ -72,9 +72,23 @@ def save_state(state, path=None):
         pass
 
 
+def _rotate_sensor_log_if_needed(path):
+    """Keep the CSV log bounded: rotate to <name>.1 once it exceeds the cap."""
+    try:
+        if path.stat().st_size < config.SENSOR_LOG_MAX_BYTES:
+            return
+    except OSError:
+        return
+    try:
+        path.replace(path.with_name(path.name + ".1"))
+    except OSError:
+        pass
+
+
 def append_sensor_log(environment, tank_identity, fish_count, path=None):
     path = Path(path or config.SENSOR_LOG_FILE)
     path.parent.mkdir(parents=True, exist_ok=True)
+    _rotate_sensor_log_if_needed(path)
 
     with path.open("a", encoding="utf-8", newline="") as handle:
         should_write_header = handle.tell() == 0
